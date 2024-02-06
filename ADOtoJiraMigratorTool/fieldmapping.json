@@ -1,0 +1,94 @@
+{
+  "FieldMapConfig": [
+    {
+      "JiraField": "assignee",
+      "AdoField": null,
+      "DefaultValue": null
+    },
+    {
+      "JiraField": "summary",
+      "AdoField": "System.Title",
+      "DefaultValue": "N/A"
+    },
+    {
+      "JiraField": "description",
+      "AdoField": "System.Description",
+      "DefaultValue": "N/A",
+      "meta": {
+        "ConvertToMarkdown": true,
+        "MaxLength": 32767
+      }
+    },
+    {
+      "JiraField": "labels",
+      "AdoField": "System.Tags",
+      "DefaultValue": "",
+      "meta": {
+        "Array": true,
+        "SplitBy": ";"
+      }
+    },
+    {
+      "JiraField": "customfield_12148",
+      "AdoField": "Custom.AngularPlanningHours",
+      "DefaultValue": "0"
+    },
+    {
+      "JiraField": "customfield_12149",
+      "AdoField": null,
+      "DefaultValue": "0"
+    },
+    {
+      "JiraField": "customfield_13198",
+      "AdoField": "Custom.QAHours",
+      "DefaultValue": "0"
+    }
+  ]
+}
+//    {
+//        "project",
+//        new { id = config["JiraConfig:ProjectId"]}
+//    },
+//    {
+//        "issuetype",
+//        new { id = issueType }
+//    },
+//    // TODO: Figure out user assignments in Jira
+//    {
+//        "assignee",
+//        null!
+//    },
+//    {
+//        "summary",
+//        item.Fields.GetValueOrDefault("System.Title", "N/A")
+//    },
+//    {
+//        "description",
+//        htmlConverter.Convert(item.Fields.GetValueOrDefault("System.Description", "N/A").ToString()).Truncate(short.MaxValue)
+//    },
+//    {
+//        "labels",
+//        (item.Fields.GetValueOrDefault("System.Tags", "").ToString() ?? "").Split(";").Select(e => e.Trim().Replace(' ', '_')).ToArray()
+//    },
+//    // Save ADO Url in Jira
+//    {
+//        config["JiraConfig:ADOTicketField"],
+//        string.Format(ADO_URL, config["AzureDevOpsConfig:Organization"], config["AzureDevOpsConfig:Project"], (item.Id ?? -1)).ToLower()
+//    },
+//    {
+//        "customfield_12148",
+//        item.Fields.GetValueOrDefault("Custom.AngularPlanningHours", "0")
+//    },
+//    {
+//        "customfield_12149",
+//        Convert.ToInt32(item.Fields.GetValueOrDefault("Custom.SQLPlanningHours", "0")) + Convert.ToInt32(item.Fields.GetValueOrDefault("Custom.WebPlanningHours", "0"))
+//    },
+//    {
+//        "customfield_13198",
+//        Convert.ToInt32(item.Fields.GetValueOrDefault("Custom.QAHours", "0"))
+//    },
+//    //{
+//    //    "Billable Hours",
+//    //    Convert.ToInt32(item.Fields.GetValueOrDefault("TranscendentAgile.BillableHours", "0"))
+//    //},
+//};

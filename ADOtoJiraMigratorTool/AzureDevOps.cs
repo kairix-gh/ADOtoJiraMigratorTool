@@ -1,21 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ADOtoJiraMigratorTool.Config;
+using Microsoft.Extensions.Configuration;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace ADOtoJiraMigratorTool {
+namespace ADOtoJiraMigratorTool
+{
     public class AzureDevOps {
-        public static async Task<IEnumerable<WorkItem>> GetBacklogItemsForDataDump(IConfiguration config, int startNum = 0, int pageSize = 0, string[]? states = null, string[]? fields = null) {
-            Dictionary<string, string> configs = new Dictionary<string, string>() {
-                { "ADO-Organization", config["AzureDevOpsConfig:Organization"] },
-                { "ADO-Project", config["AzureDevOpsConfig:Project"] },
-                { "ADO-AreaPath", config["AzureDevOpsConfig:AreaPath"] },
-                { "ADO-Team", config["AzureDevOpsConfig:Team"] },
-                { "ADO-AccessToken", config["AzureDevOpsConfig:AccessToken"] },
-                { "ADO-Backlog-WorkTypes", config["AzureDevOpsConfig:WorkTypes"] }
-            };
-
+        public static async Task<IEnumerable<WorkItem>> GetBacklogItemsForDataDump(AppConfig config, int startNum = 0, int pageSize = 0, string[]? states = null, string[]? fields = null) {
             // WIQL query format string used by ADO internally. Note that ADO API will only return
             // id's via WIQL, a second request is needed to get the actual field data, adding them
             // here does nothinggg
@@ -36,16 +29,16 @@ namespace ADOtoJiraMigratorTool {
 
             string[]? VALID_FIELDS = fields;
 
-            string[] workTypes = configs["ADO-Backlog-WorkTypes"].Split(",");
+            string[] workTypes = config.AzureDevOpsConfig.WorkTypes.Split(",");
             string workItemTypeList = "(" + string.Join(",", workTypes.Select(e => $"'{e}'")) + ")";
 
             Wiql wiql = new Wiql();
 
-            var creds = new VssBasicCredential(configs["ADO-AccessToken"] ?? "", "");
-            var conn = new VssConnection(new Uri($"https://dev.azure.com/{configs["ADO-Organization"] ?? ""}"), creds);
+            var creds = new VssBasicCredential(config.AzureDevOpsConfig.AccessToken ?? "", "");
+            var conn = new VssConnection(new Uri($"https://dev.azure.com/{config.AzureDevOpsConfig.Organization}"), creds);
             var client = await conn.GetClientAsync<WorkItemTrackingHttpClient>();
 
-            string query = string.Format(WIQL_FORMAT, configs["ADO-Project"], configs["ADO-AreaPath"], workItemTypeList);
+            string query = string.Format(WIQL_FORMAT, config.AzureDevOpsConfig.Project, config.AzureDevOpsConfig.AreaPath, workItemTypeList);
             (int[] workIds, DateTime queryAsOf) = await GetWorkItemIDs(query, wiql, client, pageSize);
 
             // Now, we can get work item details

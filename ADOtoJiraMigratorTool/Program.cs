@@ -1,14 +1,17 @@
-﻿using ADOtoJiraMigratorTool;
+﻿using ADOtoJiraMigratorTool.Config;
 using ADOtoJiraMigratorTool.TaskHandlers;
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 
 internal class Program {
     private static async Task Main(string[] args) {
-        IConfiguration configBuilder = new ConfigurationBuilder()
+        IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appconfig.json")
+            .AddJsonFile("fieldmapping.json")
             .AddUserSecrets<AppConfig>()
             .Build();
+
+        AppConfig appConfig = config.Get<AppConfig>() ?? new AppConfig();
 
         await AnsiConsole.Progress()
             .Columns(new ProgressColumn[] {
@@ -20,9 +23,9 @@ internal class Program {
             })
             .StartAsync(async ctx => {
                 var taskList = new TaskHandler[] {
-                    new ADOTaskHandler(ctx.AddTask("Download WorkItem Data from ADO", new ProgressTaskSettings() { AutoStart = true }), configBuilder),
+                    new ADOTaskHandler(ctx.AddTask("Download WorkItem Data from ADO", new ProgressTaskSettings() { AutoStart = true }), appConfig),
                     //new TransformDataHandler(ctx.AddTask("Prepare Data for Jira", new ProgressTaskSettings() { AutoStart = true })),
-                    new JiraImportTaskHandler(ctx.AddTask("Importing Data into Jira", new ProgressTaskSettings() { AutoStart = true }), configBuilder)
+                    new JiraImportTaskHandler(ctx.AddTask("Importing Data into Jira", new ProgressTaskSettings() { AutoStart = true }), appConfig)
                 };
                 int currentTask = 0;
 

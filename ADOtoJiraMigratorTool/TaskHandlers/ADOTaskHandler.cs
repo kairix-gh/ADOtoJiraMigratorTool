@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ADOtoJiraMigratorTool.Config;
+using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 
 namespace ADOtoJiraMigratorTool.TaskHandlers {
@@ -7,7 +8,7 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
             ProgressTask.IsIndeterminate = true;
         }
 
-        public ADOTaskHandler(ProgressTask task, IConfiguration config) : base(task, config) {
+        public ADOTaskHandler(ProgressTask task, AppConfig config) : base(task, config) {
             ProgressTask.IsIndeterminate = true;
         }
 

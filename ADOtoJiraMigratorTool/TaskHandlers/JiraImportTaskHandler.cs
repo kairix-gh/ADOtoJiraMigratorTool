@@ -1,6 +1,6 @@
-﻿using Flurl;
+﻿using ADOtoJiraMigratorTool.Config;
+using Flurl;
 using Flurl.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Spectre.Console;
 
@@ -9,7 +9,7 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
         public JiraImportTaskHandler(ProgressTask task) : base(task) {
         }
 
-        public JiraImportTaskHandler(ProgressTask task, IConfiguration config) : base(task, config) {
+        public JiraImportTaskHandler(ProgressTask task, AppConfig config) : base(task, config) {
         }
 
         public override async Task DoWork() {
@@ -34,16 +34,16 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
                 Array.Copy(adoIdsToProcess, i, batchIds, 0, batchCount);
 
                 // Get items that exist in Jira, convert to URL since that's what is in Jira
-                var batchAdoUrls = batchIds.Select(e => "'" + string.Format(Utils.ADO_URL, Config["AzureDevOpsConfig:Organization"], Config["AzureDevOpsConfig:Project"], e) + "'").ToArray();
-                var query = (Config["JiraConfig:BaseUrl"] + "/rest/api/2/search").SetQueryParams(new {
-                    jql = $"project = {Config["JiraConfig:ProjectId"]} AND cf[{Config["JiraConfig:ADOTicketField"].Split('_')[1]}] IN (" + string.Join(",", batchAdoUrls) + ")".ToLower()
+                var batchAdoUrls = batchIds.Select(e => "'" + string.Format(Utils.ADO_URL, Config.AzureDevOpsConfig.Organization, Config.AzureDevOpsConfig.Project, e) + "'").ToArray();
+                var query = (Config.JiraConfig.BaseUrl + "/rest/api/2/search").SetQueryParams(new {
+                    jql = $"project = {Config.JiraConfig.ProjectId} AND cf[{Config.JiraConfig.ADOTicketField.Split('_')[1]}] IN (" + string.Join(",", batchAdoUrls) + ")".ToLower()
                 });
 
                 // Query Jira API to find items where our custom field has the ADO URL in it
                 // These are the items we need to update and not create, or we will make dupes
                 JiraIssueSearchResults? searchResults = null;
                 try {
-                    searchResults = await query.WithBasicAuth(Config["JiraConfig:Username"], Config["JiraConfig:APIToken"]).GetJsonAsync<JiraIssueSearchResults>();
+                    searchResults = await query.WithBasicAuth(Config.JiraConfig.Username, Config.JiraConfig.APIToken).GetJsonAsync<JiraIssueSearchResults>();
                 } catch (FlurlHttpException ex) {
                     var error = await ex.GetResponseStringAsync();
                     AnsiConsole.MarkupLine("[bold red]{0}[/]", error.EscapeMarkup());
@@ -56,7 +56,7 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
                 if (searchResults != null && searchResults.Total > 0) {
                     idsToUpdate = searchResults.Issues.ToDictionary(
                         result => {
-                            return Convert.ToInt32((result.Fields[Config["JiraConfig:ADOTicketField"]].ToString() ?? "").Split('/').Last());
+                            return Convert.ToInt32((result.Fields[Config.JiraConfig.ADOTicketField].ToString() ?? "").Split('/').Last());
                         },
                         result => {
                             return result.Id;
@@ -79,7 +79,9 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
 
                     try {
                         // Returns 201 with no body
-                        await (Config["JiraConfig:BaseUrl"] + "/rest/api/2/issue/" + kv.Value).WithBasicAuth(Config["JiraConfig:Username"], Config["JiraConfig:APIToken"]).PutJsonAsync(body);
+                        await (Config.JiraConfig.BaseUrl + "/rest/api/2/issue/" + kv.Value)
+                            .WithBasicAuth(Config.JiraConfig.Username, Config.JiraConfig.APIToken)
+                            .PutJsonAsync(body);
                     } catch (FlurlHttpException ex) {
                         var error = await ex.GetResponseStringAsync();
                         AnsiConsole.MarkupLine("[bold red]Failed Updating Ticket (Jira: {0}, ADO: {1})[/]", kv.Value, kv.Key);
@@ -107,8 +109,8 @@ namespace ADOtoJiraMigratorTool.TaskHandlers {
                 if (IssueUpdates.Count <= 0) continue;
 
                 try {
-                    var response = await (Config["JiraConfig:BaseUrl"] + "/rest/api/2/issue/bulk")
-                        .WithBasicAuth(Config["JiraConfig:Username"], Config["JiraConfig:APIToken"])
+                    var response = await (Config.JiraConfig.BaseUrl + "/rest/api/2/issue/bulk")
+                        .WithBasicAuth(Config.JiraConfig.Username, Config.JiraConfig.APIToken)
                         .PostJsonAsync(new { issueUpdates = IssueUpdates })
                         .ReceiveJson<JiraBulkCreateResponse>();
                 } catch (FlurlHttpException ex) {
