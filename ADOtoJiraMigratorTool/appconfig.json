@@ -1,0 +1,20 @@
+{
+  "AzureDevOpsConfig": {
+    "Organization": "transcendent",
+    "Project": "mintek",
+    "AreaPath": "Mintek\\Development\\Facilities",
+    "Team": "facilities",
+    "AccessToken": "nope",
+    "WorkTypes": "User Story,Bug"
+  },
+  "JiraConfig": {
+    "BaseUrl": "https://aliceplatform.atlassian.net",
+    "Username": "",
+    "APIToken": "",
+    "ProjectId": "13900",
+
+    "StoryId": 7,
+    "BugId": 1,
+    "ADOTicketField": "customfield_12139"
+  }
+}
